@@ -1,7 +1,6 @@
 => NAME
 
-LibZip - Create very low weight self executables. This is the generator of TinyPerl.
-
+LibZip - Create very low weight self executables. (This is the generator of TinyPerl).
 => DESCRIPTION
 
 This module will create low weight self executables, that have this features:
@@ -14,14 +13,15 @@ This module will create low weight self executables, that have this features:
 *> Can work with UPX to automatically compress the binaries inside lib.zip.
 /*>
 
-All this featues will generate a I<Initialize Package> of only 30 Kb,
-and a executable of less than 80Kb (Win32), plus PerlLib.
+All this featues will generate a I<Initialize Package> of only 28 Kb,
+and a executable of less than 80Kb (Win32), plus PerlLib. This means that a 
+hellow world script as a self executable will have only 350KB (Win32).
 
-The main purpose of this module is to have all the Perl enverioment compressed,
-including the distribution of scripts in a small package. Onde good example is
-TinyPerl (L<http://tinyperl.sf.net>), that have Perl CORE and a basic library in less
-than 600Kb, what make possible to install fast Perl in any computer connected to
-the internet.
+The main idea of this module is to create the smaller Perl distribution as possible,
+having all the Perl enverioment compressed, including the distribution of scripts
+in a small package. One good example is TinyPerl (L<http://tinyperl.sf.net>),
+that have Perl CORE and a basic library in less than 550Kb, what make possible
+to install Perl fast in any computer connected to the internet.
 
 ==> Initialize Package
 
@@ -37,19 +37,21 @@ The usage of this module is through the I<libzip> script:
 
 *> OPTIONS:
 
-  -allowv        Allow the original Perl option -v in the binary.
-  -obetter|ob    Compile the file with all the options that can compress better.
-  -compile|o     Compile the file.
-  -file|f        Define the 2nd file for the options pack and perlbin.
-  -keepsrc       Keep sources created for compilation.
-  -lib|l         Create a lib in this directory.
-  -lzw           Apply LZW compression to the package
-  -overwrite     Overwrite already existent files.
-  -pack|p        Create a package.
-  -perlbin|pb    Create a binary from a package.
-  -striplib      Strip POD from libs
-  -upx           UPX the PerlLib binary.
-  -upxlib        UPX binaries from the lib.zip
+  -allowopts    Allow original Perl options.
+  -compile|o    Compile the file.
+  -file|f       Define the 2nd file for the options pack and perlbin.
+  -gui          Create GUI (non console) executable (Win32 only).
+  -icon         Set the icon of the executable (Win32 only).
+  -keepsrc      Keep sources created for compilation.
+  -lib|l        Create a lib in this directory.
+  -lzw          Apply LZW compression to the package
+  -obetter|ob   Compile the file with all the options that can compress better.
+  -overwrite    Overwrite already existent files.
+  -pack|p       Create a package.
+  -perlbin|pb   Create a binary from a package.
+  -striplib     Strip POD from libs
+  -upx          UPX the PerlLib binary.
+  -upxlib       UPX binaries from the lib.zip
 
 *> EXAMPLES:
 
@@ -71,8 +73,52 @@ The usage of this module is through the I<libzip> script:
 
   FULL EXAMPLE:
 
-    libzip -o script.pl -allowv -lzw -upx -upxlib -striplib -keepsrc -overwrite
+    libzip -o script.pl -allowopts vVw -lzw -upx -upxlib -striplib -keepsrc -overwrite
 
+=> STEP BY STEP EXAMPLE
+
+Script hello.pl:
+
+  #!/usr/bin/perl
+  print "Hello World!\n" ;
+  exit;
+
+Creating the list of modules to be inside lib.zip:
+
+  $> perl -MLibZip::Scan hello.pl
+  ## A file libzip.modules will be created in the current directory.
+  ## You can edit it if needed.
+
+Converting the script to executable:
+
+  $> libzip -ob hello.pl
+  ## hello.exe (or just hello on Linux) and lib.zip was created.
+
+=> CREATING THE lib.zip AUTOMATICALLY FROM YOU SCRIPT
+
+To create a lib.zip file you need a list of modules that will be inside it.
+To create this automatically when compiling your script, just add in the same
+path of it 2 files:
+
+  - libzip.modules ## list of modules to be inside lib.zip
+  - libzip.skip    ## list of modules to NOT add.
+
+To generate libzip.modules automatically just run you script with:
+
+  $> perl -MLibZip::Scan foo.pl
+
+... and the file will be in the same path of foo.pl.
+
+Example of a libzip.skip file:
+
+  Socket
+  IO::Socket
+  qr/^IO::*/
+  qr/\.pl$/
+
+This list will skip the modules 'Socket' and 'IO::Socket', and any file or
+module name that match the 2 REGEXP will be skiped too, so, all the modules
+inside IO:: and any file .pl won't be inside lib.zip.
 
 => LZW
 

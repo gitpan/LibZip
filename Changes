@@ -1,5 +1,15 @@
 Revision history for Perl extension LibZip.
 
-0.01  2004-06-06 02:48:17
+0.03  2004-06-06
+      - POD fixes & upgrades.
+      - Added support to Win32 icon in the executables.
+      - Added option to create GUI executables (non console).
+
+
+0.02  2004-06-06
+      - LibZip recreated from scratch. Result: smaller and faster binaries.
+
+
+0.01  2003-??-??
       - original version;
 

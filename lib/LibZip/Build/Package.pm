@@ -124,13 +124,15 @@ sub source {
   
   my $size_unpacked = get_size_unpacked($src_zlib , $libzip , $src_main) ;
   
-  print "SIZE UNPACKED: $size_unpacked\n" ;
+  print "PACKAGE: size unpacked: $size_unpacked\n" ;
   
   if ( $opts{lzw} ) {
     print "Applying LZW... " ;
     $src = src_LZW($src) ;  
     print "OK\n" ;
   }
+  
+  print "PACKAGE: size packed:   ". length($src) ."\n" ;
   
   return $src ;  
 }

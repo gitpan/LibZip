@@ -17,7 +17,6 @@ WriteMakefile(
     'Compress::Zlib' => '1.33' ,
     'Archive::Zip'   => '1.05' ,
     } ,
-    #'PREREQ_PM'     => {'Foo'  => 0.01} ,
     ($] >= 5.005 ?
       ( ABSTRACT_FROM => 'lib/LibZip.pod',
         AUTHOR        => 'Graciliano M. P. <gm@virtuasites.com.br>'

@@ -31,9 +31,9 @@ use LibZip::Build::UPX ;
   type => 'def' ,
   ) ;
   
-  my $size_mark     = '##[LBZZ]##' ;
-  my $size_mark2    = '##[LBZS]##' ;
-  my $allow_v_mark    = '##[LBZV]##' ;
+  my $size_mark       = '##[LBZZ]##' ;
+  my $size_mark2      = '##[LBZS]##' ;
+  my $allow_opts_mark = '##[LBZOPTS]###################' ;
   
   my $LibZipBin_file = 'LibZipBin' . $Config{_exe} ;
   
@@ -90,6 +90,12 @@ sub perl2bin {
   my $binlog = cat($LibZipBin) ;
   die "** The Perl binary was not from LibZip: $LibZipBin\n" if $binlog !~ /\Q$size_mark\E/s ;
   
+  if ( $opts{icon} ) {
+    copy_file($LibZipBin,$exe_name) ;
+    set_icon($exe_name , $opts{icon}) ;
+    $binlog = cat($exe_name) ;
+  }
+  
   my $scriptlog = cat($script_file) ;  
   
   my $bin_lng = length($binlog) ;
@@ -104,13 +110,18 @@ sub perl2bin {
   $binlog =~ s/\Q$size_mark\E/$size_var/s ;
   $binlog =~ s/\Q$size_mark2\E/$size_var2/s ;
   
-  if ( $opts{'allowv'} ) {
-    my $val = 1 ;
-    while(length($val) < length($allow_v_mark)) { $val = "0$val" ;}
-    $binlog =~ s/\Q$allow_v_mark\E/$val/s ;
+  if ( $opts{allowopts} ne '' ) {
+    my $val = substr($opts{allowopts} , 0 , 30) ;
+    while(length($val) < length($allow_opts_mark)) { $val .= '#' ;}
+    $binlog =~ s/\Q$allow_opts_mark\E/$val/s ;
   }
   
   save($exe_name , $binlog . $scriptlog) ;
+  
+  if ($opts{gui}) {
+    print "Converting to GUI...\n" ;
+    exe_type($exe_name,'windows') ;
+  }
 
   check_perllib_copy($script_dir , $opts{upx}) ;
   
@@ -120,6 +131,99 @@ sub perl2bin {
   return( $exe_name , $exe_dir ) if wantarray ;
   return $exe_name ;
 }
+
+############
+# SET_ICON #
+############
+
+sub set_icon {
+  my ( $exe , $icon ) = @_ ;
+  return if $^O ne 'MSWin32' ;
+  
+  eval {
+    require Win32::Exe ;
+    require Win32::Exe::IconFile ;
+  };
+  if ( $@ ) {
+    warn "** Error loading Win32::Exe: $@\n" ;
+  }
+  
+  my $win32exe = Win32::Exe->new($exe) ;
+  if ( !$win32exe ) {
+    warn "** Error using Win32::Exe: $@\n" ;
+    return ;
+  }
+  eval {
+    $win32exe->update(
+    icon => $icon ,
+    info => undef ,
+    ) if -s $icon ;
+  };
+  if ( $@ ) {
+    warn "** Error setting icon: $icon\n" ;
+  }
+  else {
+    print "Icon set: $icon\n" ;
+  }
+}
+
+############
+# EXE_TYPE #
+############
+
+sub exe_type {
+  my @ARGV = @_ ;
+
+  my %subsys = (
+  NATIVE => 1,
+  WINDOWS => 2,
+  CONSOLE => 3,
+  POSIX => 7,
+  WINDOWSCE => 9,
+  );
+  
+  unless (0 < @ARGV && @ARGV < 3) {
+    printf "Usage: $0 exefile [%s]\n", join '|', sort keys %subsys;
+    exit;
+  }
+  
+  $ARGV[1] = uc $ARGV[1] if $ARGV[1];
+  unless (@ARGV == 1 || defined $subsys{$ARGV[1]}) {
+    (my $subsys = join(', ', sort keys %subsys)) =~ s/, (\w+)$/ or $1/;
+    print "Invalid subsystem $ARGV[1], please use $subsys\n";
+    exit;
+  }
+  
+  my ($record,$magic,$signature,$offset,$size);
+  open EXE, "+< $ARGV[0]" or die "Cannot open $ARGV[0]: $!\n";
+  binmode EXE;
+
+  read EXE, $record, 64;
+  ($magic,$offset) = unpack "Sx58L", $record;
+  
+  die "$ARGV[0] is not an MSDOS executable file.\n" unless $magic == 0x5a4d ;
+
+  seek EXE, $offset, 0;
+  read EXE, $record, 4+20+2;
+  ($signature,$size,$magic) = unpack "Lx16Sx2S", $record;
+  
+  die "PE header not found" unless $signature == 0x4550;
+  
+  die "Optional header is neither in NT32 nor in NT64 format" unless ($size == 224 && $magic == 0x10b) || ($size == 240 && $magic == 0x20b) ;
+
+  seek EXE, $offset+4+20+68, 0;
+  if (@ARGV == 1) {
+    read EXE, $record, 2;
+    my ($subsys) = unpack "S", $record;
+    $subsys = {reverse %subsys}->{$subsys} || "UNKNOWN($subsys)";
+    print "$ARGV[0] uses the $subsys subsystem.\n";
+  }
+  else {
+    print EXE pack "S", $subsys{$ARGV[1]};
+  }
+  close EXE;
+}
+
 
 ######################
 # CHECK_PERLLIB_COPY #

@@ -22,19 +22,21 @@ ________________________________________________________________________________
 
 OPTIONS:
 
-  -allowv        Allow the original Perl option -v in the binary.
-  -obetter|ob    Compile the file with all the options that can compress better.
-  -compile|o     Compile the file.
-  -file|f        Define the 2nd file for the options pack and perlbin.
-  -keepsrc       Keep sources created for compilation.
-  -lib|l         Create a lib in this directory.
-  -lzw           Apply LZW compression to the package
-  -overwrite     Overwrite already existent files.
-  -pack|p        Create a package.
-  -perlbin|pb    Create a binary from a package.
-  -striplib      Strip POD from libs
-  -upx           UPX the PerlLib binary.
-  -upxlib        UPX binaries from the lib.zip
+  -allowopts    Allow the Perl options.
+  -compile|o    Compile the file.
+  -file|f       Define the 2nd file for the options pack and perlbin.
+  -gui          Create GUI (non console) executable (Win32 only).
+  -icon         Set the icon of the executable (Win32 only).
+  -keepsrc      Keep sources created for compilation.
+  -lib|l        Create a lib in this directory.
+  -lzw          Apply LZW compression to the package
+  -obetter|ob   Compile the file with all the options that can compress better.
+  -overwrite    Overwrite already existent files.
+  -pack|p       Create a package.
+  -perlbin|pb   Create a binary from a package.
+  -striplib     Strip POD from libs
+  -upx          UPX the PerlLib binary.
+  -upxlib       UPX binaries from the lib.zip
 
 EXAMPLES:
 
@@ -56,7 +58,7 @@ EXAMPLES:
 
   FULL EXAMPLE:
 
-    libzip -o script.pl -allowv -lzw -upx -upxlib -striplib -keepsrc -overwrite
+    libzip -o script.pl -allowopts vVw -lzw -upx -upxlib -striplib -keepsrc -overwrite
 
 (C) Copyright 2000-2004, Graciliano M. P. <gm\@virtuasites.com.br>
 ________________________________________________________________________________
@@ -70,7 +72,14 @@ exit;
 ########
 
   my %OPTS ;
-  GetOptions(\%OPTS, qw[ pack|p=s perlbin|pb=s lib|l=s compile|o=s file|f=s overwrite! keepsrc! allowv! lzw! upx! upxlib! striplib! obetter|ob=s ]) ;
+  GetOptions(\%OPTS, qw[
+    pack|p=s perlbin|pb=s lib|l=s
+    compile|o=s obetter|ob=s file|f=s
+    icon=s gui! allowopts=s
+    overwrite! keepsrc!
+    upx! upxlib!
+    lzw! striplib!
+  ]) ;
 
 ###########
 # OBETTER #

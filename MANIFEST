@@ -1,3 +1,4 @@
+.exists
 Changes
 MANIFEST
 Makefile.PL
@@ -22,6 +23,8 @@ lib/LibZip/MyZlib.pm
 lib/LibZip/Scan.pm
 myldr/Makefile.PL
 myldr/file2c.pl
+myldr/win32.coff
+myldr/win32.res
 myldr/zlib-src/adler32.c
 myldr/zlib-src/compress.c
 myldr/zlib-src/constants.h
@@ -53,6 +56,8 @@ script/libzip.pl
 t/001_load.t
 t/002_simple.t
 t/lib.zip
+tinyperl/build.bat
 tinyperl/lib.pl
 tinyperl/libzip.skip
+tinyperl/myMakefile.PL
 tinyperl/tinyperl.pl

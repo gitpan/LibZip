@@ -35,7 +35,7 @@ my $ld = $Config{ld};
 my $cc = $Config{cc};
 my $f2c = "./file2c.pl";
 
-my( $out, $ccdebug, $lddebug, $warn, $rm, $mv );
+my( $out, $ccdebug, $lddebug, $warn, $res , $rm, $mv );
 
 my $is_MSVC = $cc =~ m/^cl/;
 if( $is_MSVC ) {
@@ -43,11 +43,13 @@ if( $is_MSVC ) {
   $ccdebug = $debug ? '-Zi ' : '';
   $lddebug = $debug ? '-debug ' : '-release ';
   $warn = '-W3';
+  $res = 'win32.res';
 } else {
   $out = '-o ';
   $ccdebug = $debug ? '-g ' : '';
   $lddebug = $debug ? '' : '-s ';
   $warn = '-Wall -Wno-comments ';
+  $res = ($^O =~ /^(?:MSWin|cygwin)/) ? 'win32.coff' : '';
 }
 
 $rm = $^O eq 'MSWin32' ? '$(PERL) -MExtUtils::Command -e rm_f' : 'rm';
@@ -98,7 +100,7 @@ INC = -I./zlib-src
 
 C_FILES = $C_FILES
 H_FILES = $H_FILES
-O_FILES = $O_FILES
+O_FILES = $O_FILES $res
 
 OBJECTS=  \$(O_FILES)
 

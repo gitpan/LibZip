@@ -87,56 +87,131 @@ static PerlInterpreter *my_perl;
 static void xs_init( pTHX );
 EXTERN_C void boot_DynaLoader( pTHX_ CV* cv );
 
-char** prepare_args( int argc, char** argv, int* my_argc , int allow_v )
+char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , char* allow_opts )
 {
-    int i, count = ( argc ? argc : 1 ) + 3;
+    int i, count = ( argc ? argc : 1 ) + 3 ;
+    int opts_count = strlen(allow_opts) ;
+    
     char** my_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
+    char** perl_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
+    char** script_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
+    
+    int perl_argv_i = 0 ;
+    int script_argv_i = 0 ;
+    int my_arv_i = 0 ;
+    
+    int end_perl_args = -1 ;
+    int last_e = 0 ;
+    int found_opt_e = 0 ;
+    
+    //printf(">> %s >> %i >> %i >> %i\n" , allow_opts , opt_allowed(allow_opts,"-v") , opt_allowed(allow_opts,"V") , opt_allowed(allow_opts,"z") ) ;
+    
+    for( i = 1; i < count - 3 ; ++i ) {
+      //char *opt = strdup(argv[i]) ; ++opt ;
+      
+      if ( end_perl_args == -1 && (strncmp(argv[i], "-", 1) == 0 || last_e) ) {
+        if ( last_e || opt_allowed(allow_opts,argv[i]) ) {
+          perl_argv[ perl_argv_i++ ] = strdup(argv[i]) ;
 
-    my_argv[0] = strdup( argc ? argv[0] : "" );
-    my_argv[1] = strdup( "-e" );
-    my_argv[2] = strdup( "0" );
-    my_argv[3] = strdup( "--" );
+          if ( strcmp(argv[i], "-e") == 0 ) { last_e = found_opt_e = 1 ;}
+          else { last_e = 0 ;}
+        }
+        else {
+          script_argv[ script_argv_i++ ] = strdup(argv[i]) ;
+          last_e = 0 ;
+        }
+      }
+      else {
+        if (end_perl_args == -1) end_perl_args = i ;
+        script_argv[ script_argv_i++ ] = strdup(argv[i]) ;
+        last_e = 0 ;
+      }
+    }
+    
+    if ( last_e ) { perl_argv[ perl_argv_i++ ] = "0" ;}
 
-    for( i = 4; i < count; ++i )
-    {
-        my_argv[i] = strdup( argv[ i - 3 ] );
+    my_argv[my_arv_i++] = strdup( argc ? argv[0] : "" );
+    
+    for(i = 0; i < perl_argv_i ; ++i ) {
+      my_argv[my_arv_i++] =  strdup( perl_argv[i] ) ;
+    }
+    
+    if ( !found_opt_e ) {
+      my_argv[my_arv_i++] = strdup( "-e" );
+      *arg_code_pos = my_arv_i ;
+      my_argv[my_arv_i++] = strdup( "0" );
+    }
+    
+    my_argv[my_arv_i++] = strdup( "--" );
+        
+    for(i = 0; i < script_argv_i ; ++i ) {
+      my_argv[my_arv_i++] =  strdup( script_argv[i] ) ;
     }
 
-    my_argv[ count + 1 ] = NULL;
+    my_argv[my_arv_i] = NULL;
     
-    if ( allow_v && count > 4 && strcmp( my_argv[4] , strdup("-v") ) == 0 ) { my_argv[1] = strdup( "-v" ) ;}
-
-    *my_argc = count;
+    /*
+    printf("------------------------------------- END: %i\n" , end_perl_args) ;
+    
+    for( i = 0; i < perl_argv_i ; ++i ) {
+      printf("pl>> %s\n" , perl_argv[i] ) ;    
+    }
+    
+    for( i = 0; i < script_argv_i ; ++i ) {
+      printf("sc>> %s\n" , script_argv[i] ) ;    
+    }
+    
+    for( i = 0; i < my_arv_i ; ++i ) {
+      printf("my>> %s\n" , my_argv[i] ) ;    
+    }
+    
+    printf("-------------------------------------\n") ;
+    */
+    
+    
+    *my_argc = my_arv_i;
     return my_argv;
 }
+
+int opt_allowed(const char *s1, const char *s2) {
+  int n = strlen(s1) ;
+  if (n == 0) return 0 ;
+  
+  if ( strlen(s2) == 2 ) { ++s2 ;}
+
+  while (n-- != 0) {
+    if (n == 0 || *s1 == '\0' || *s1 == '#') return 0 ;
+    if ( *(unsigned char *)s1 == *(unsigned char *)s2 ) { return 1 ;}
+    s1++;
+  }
+
+  return 0 ;
+}
+
 
 int
 main(int argc, char **argv, char **env)
 {
-    int my_argc;
+    int my_argc , i;
     char** my_argv;
     int exitstatus;
-
+    int arg_code_pos = -1 ;
     char  *tmp=NULL ;
     int   can_run=1 ;
-    int   allow_v=1 ;
     char  CODE[300] ;
     char  LBZ_size[] = "##[LBZZ]##";
     char  LBZ_size2[] = "##[LBZS]##";
-    char  LBZ_allow_v[] = "##[LBZV]##";
+    char  LBZ_allow_opts[] = "##[LBZOPTS]###################";
     char  LBZ_runA[] = "package LibZip::MAIN;my%LBZ_BIN;eval{my%LBZ=(z=>'" ;
     char  LBZ_runB[] = "',s=>'" ;
-    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);%LBZ_BIN=%LBZ};eval($_);if($@){print STDERR$@}" ;
+    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);%LBZ_BIN=%LBZ};eval($_);die$@if$@" ;
 
     tmp = malloc(sizeof(char) * strlen(LBZ_size) + 1) ;
 
     strcpy (tmp, LBZ_size);
     if ( tmp[0] == '#' ) { can_run = 0 ;}
-
-    strcpy (tmp, LBZ_allow_v);
-    if ( tmp[0] == '#' ) { allow_v = 0 ;}
     
-    my_argv = prepare_args( argc, argv, &my_argc , allow_v );
+    my_argv = prepare_args( argc, argv, &my_argc , &arg_code_pos , LBZ_allow_opts );
     
 #if defined(USE_ITHREADS)
     /* XXX Ideally, this should really be happening in perl_alloc() or
@@ -160,8 +235,17 @@ main(int argc, char **argv, char **env)
 	PL_perl_destruct_level = 0;
     
     if ( can_run ) {
-       sprintf(CODE,"%s%s%s%s%s\0",LBZ_runA,LBZ_size,LBZ_runB,LBZ_size2,LBZ_runC) ;
-       my_argv[2] = CODE ;
+      sprintf(CODE,"%s%s%s%s%s\0",LBZ_runA,LBZ_size,LBZ_runB,LBZ_size2,LBZ_runC) ;
+      if (arg_code_pos > 0) my_argv[arg_code_pos] = CODE ;
+      
+      /* 
+      printf("-------------------------------------\n") ;
+      for(i = 0; i < my_argc ; ++i ) {
+        printf("arg>> %s\n" , my_argv[i] ) ;    
+      }
+      printf("-------------------------------------\n") ;
+      */
+
     }
     
     exitstatus = perl_parse(my_perl, xs_init, my_argc, my_argv, (char **)NULL) ;
