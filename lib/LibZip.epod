@@ -1,0 +1,130 @@
+=> NAME
+
+LibZip - Create very low weight self executables. This is the generator of TinyPerl.
+
+=> DESCRIPTION
+
+This module will create low weight self executables, that have this features:
+
+*> Perl library compressed in a lib.zip file.
+*> Zlib compiled inside the executable (binary).
+*> Initialize Package code is compressed in the sources.
+*> Appended code to the executable can be compressed with LZW.
+*> Remove POD from the source of files inside lib.zip.
+*> Can work with UPX to automatically compress the binaries inside lib.zip.
+/*>
+
+All this featues will generate a I<Initialize Package> of only 30 Kb,
+and a executable of less than 80Kb (Win32), plus PerlLib.
+
+The main purpose of this module is to have all the Perl enverioment compressed,
+including the distribution of scripts in a small package. Onde good example is
+TinyPerl (L<http://tinyperl.sf.net>), that have Perl CORE and a basic library in less
+than 600Kb, what make possible to install fast Perl in any computer connected to
+the internet.
+
+==> Initialize Package
+
+I<Initialize Package (LibZip + user script) is a LibZip code responsible to
+load all the LibZip enverioment, enabling the use of a lib.zip file as the Perl
+library directory. This code will be the 1st thing evaluated when Perl is executed,
+and only after load all the enverioment the user script starts. This package is
+what is appended to the Perl binary to create the self executable>.
+
+=> USAGE
+
+The usage of this module is through the I<libzip> script:
+
+*> OPTIONS:
+
+  -allowv        Allow the original Perl option -v in the binary.
+  -obetter|ob    Compile the file with all the options that can compress better.
+  -compile|o     Compile the file.
+  -file|f        Define the 2nd file for the options pack and perlbin.
+  -keepsrc       Keep sources created for compilation.
+  -lib|l         Create a lib in this directory.
+  -lzw           Apply LZW compression to the package
+  -overwrite     Overwrite already existent files.
+  -pack|p        Create a package.
+  -perlbin|pb    Create a binary from a package.
+  -striplib      Strip POD from libs
+  -upx           UPX the PerlLib binary.
+  -upxlib        UPX binaries from the lib.zip
+
+*> EXAMPLES:
+
+  COMPILE:
+    libzip -o file.pl
+    ## Creates file.exe (combine -pack, -perlbin and -lib autoamtically).
+
+  CREATE A PACKAGE FROM SCRIPT:
+    libzip.bat -p file.pack -f file.pl
+    ## Creates file.pack (used to create the executable) with file.pl inside.
+
+  CREATE LIB.ZIP:
+    libzip -l lib.zip -f libzip.modules
+    ## Create a library (lib.zip) with the modules in the file libzip.modules
+
+  CREATE BINATY:
+    libzip -perlbin script.pack -f script.exe
+    ## Create the binary from the package.
+
+  FULL EXAMPLE:
+
+    libzip -o script.pl -allowv -lzw -upx -upxlib -striplib -keepsrc -overwrite
+
+
+=> LZW
+
+Can be used to compress the I<Initialize Package> source and the user script,
+what will save 10Kb+.
+
+=> PAR
+
+LibZip is not a substitute of L<PAR>, that have much more resources.
+L<LibZip> has a different architecture, and the main idea of it is to create the
+smaller Perl distribution as possible.
+
+=> UPX
+
+UPX is a tool that can be used to compress executables and run them compressed.
+To enable it with I<LibZip> install the upx binary (will look for upx) in the I<PATH>.
+
+Note that the executable, with your script inside, can't have UPX applied to it, since the size of the file need to be fix.
+
+=> Source Obfuscation
+
+B<I<LibZip> doesn't have obfuscation resource for the user script, and I don't have
+plans to add it>, since is very easy to break any obfuscation system if we know what
+module is in use and the key used to encrypt the sources.
+
+
+If you want to obfuscate your code against simple users just enable the I<-lzw> option,
+since a complex obfuscation system won't give you much more obfuscation than this.
+
+=> SEE ALSO
+
+*> TinyPerl (L<http://tinyperl.sf.net>).
+
+*> UPX - Ultimate Packer for eXecutables (L<http://upx.sf.net>)
+
+/*>
+
+L<PAR>.
+
+L<Compress::Zlib>, L<Archive::Zip>, L<Compress::LZW>.
+
+L<Pod::Stripper>.
+
+=> AUTHOR
+
+Graciliano M. P. <gm@virtuasites.com.br>
+
+I will appreciate any type of feedback (include your opinions and/or suggestions). ;-P
+
+=> COPYRIGHT
+
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+
