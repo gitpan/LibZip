@@ -120,7 +120,7 @@ sub source {
 
   my $src_main = cat($main_script , 1) ;
   
-  my $src = "BEGIN{$src_zlib$src_init}\n#line 1 main\n$src_main" ;
+  my $src = "BEGIN{$src_zlib$src_init}\nreturn if \$LibZip::ONLY_INIT;\n#line 1 main\n$src_main" ;
   
   my $size_unpacked = get_size_unpacked($src_zlib , $libzip , $src_main) ;
   

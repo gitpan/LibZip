@@ -1,4 +1,3 @@
-.exists
 Changes
 MANIFEST
 Makefile.PL
@@ -52,11 +51,10 @@ myldr/zlib-src/zconf.h
 myldr/zlib-src/zlib.h
 myldr/zlib-src/zutil.c
 myldr/zlib-src/zutil.h
-script/libzip.pl
+script/libzip
 t/001_load.t
 t/002_simple.t
 t/lib.zip
-tinyperl/build.bat
 tinyperl/lib.pl
 tinyperl/libzip.skip
 tinyperl/myMakefile.PL

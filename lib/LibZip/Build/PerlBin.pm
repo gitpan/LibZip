@@ -67,6 +67,8 @@ my ($perlbin_dir , $LibZipBin) ;
   
 }
 
+  die "** Can't find LibZip binary!!!\n" if !-e $LibZipBin ;
+
 ############
 # PERL2BIN #
 ############
@@ -128,6 +130,8 @@ sub perl2bin {
   }
 
   LibZip::Build::UPX::upx($exe_name) if $opts{upx} ;
+
+  chmod(0755 , $exe_name) if !-x $exe_name ;
 
   check_perllib_copy($script_dir , $opts{upx}) ;
   

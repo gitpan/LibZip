@@ -88,6 +88,10 @@ The usage of this module is through the I<libzip> script:
 
     libzip -o script.pl -allowopts vVw -lzw -upx -upxlib -striplib -keepsrc -overwrite
 
+The option I<-allowopts> is usefull if you want to keep some behaviors of the Perl
+interpreter when calling your executable, like -v and -V that can report informations
+about the Perl version.
+
 =back
 
 =head1 STEP BY STEP EXAMPLE
@@ -109,7 +113,7 @@ Converting the script to executable:
   $> libzip -ob hello.pl
   ## hello.exe (or just hello on Linux) and lib.zip were created.
 
-=head1 CREATING THE lib.zip AUTOMATICALLY FROM YOU SCRIPT
+=head1 CREATING THE lib.zip AUTOMATICALLY FROM YOUR SCRIPT
 
 To create a lib.zip file you need a list of modules that will be inside it.
 To create this automatically when compiling your script, just add in the same
@@ -123,6 +127,39 @@ To generate libzip.modules automatically just run your script with:
   $> perl -MLibZip::Scan foo.pl
 
 ... and the file will be in the same path of foo.pl.
+
+Example of a libzip.modules file:
+
+  Carp
+  Exporter
+  HTTP::Date
+  HTTP::Headers
+  HTTP::Message
+  HTTP::Request
+  HTTP::Response
+  HTTP::Status
+  LWP
+  LWP::Debug
+  LWP::MemberMixin
+  LWP::Protocol
+  LWP::UserAgent
+  Time::Local
+  URI
+  URI::Escape
+  overload
+  strict
+  utf8
+  utf8_heavy.pl
+  unicore/Exact.pl
+  vars
+  warnings
+  warnings::register
+
+You also can define your self a I<skip> file, since the list above was created
+automatically by I<LibZip> when the option -MLibZip::Scan was used to run the
+script. Whit that you don't need to reedit by hand the list of modules, you just
+keep a static I<skip> file in the same path with the patterns of what you don't
+want in your distributtion.
 
 Example of a libzip.skip file:
 
@@ -149,7 +186,9 @@ smaller Perl distribution as possible.
 =head1 UPX
 
 UPX is a tool that can be used to compress executables and run them compressed.
-To enable it with I<LibZip> install the upx binary (will look for upx) in the I<PATH>.
+To enable it with I<LibZip> install the upx binary in the I<PATH> (will look for the name upx).
+
+I<** See UPX link below>.
 
 =head1 Source Obfuscation
 
@@ -159,6 +198,20 @@ module is in use and the key used to encrypt the sources.
 
 If you want to obfuscate your code against simple users just enable the I<-lzw> option,
 since a complex obfuscation system won't give you much more obfuscation than this.
+
+=head1 TinyPerl
+
+The sources of TinyPerl come with I<LibZip> in the sub-directory I<./tinyperl>.
+To build it just type:
+
+  perl myMakeFile.PL
+  make
+
+Note that the name is I<B<my>MakeFile.PL>, and it should be called only after
+have I<LibZip> well installed in your Perl. The command above will create the
+tinyperl executable, lib.zip and place the PerlLib in the same path. Also
+it will create a I<release> directory at I<./tinyperl/release>, where all
+binaries of TinyPerl will be placed.
 
 =head1 SEE ALSO
 
@@ -178,7 +231,7 @@ L<Pod::Stripper>.
 
 =head1 AUTHOR
 
-Graciliano M. P. <gm@virtuasites.com.br>
+Graciliano M. P. <gmpassos@cpan.org>
 
 I will appreciate any type of feedback (include your opinions and/or suggestions). ;-P
 

@@ -23,19 +23,31 @@ sub BEGIN {
   };
   
   %INC = %inc ;
+  
+  unshift (@INC, \&hook) ;
+  
 }
 
 $VERSION = '0.01' ;
 
-#######
-# END #
-#######
+########
+# HOOK #
+########
 
-sub END {
+sub hook {
+  save_inc() ;
+  return undef ;
+}
+
+############
+# SAVE_INC #
+############
+
+sub save_inc {
 
   my $scanfile = $FindBin::RealBin . '/libzip.modules' ;
 
-  print "** LibZip::Scan saved at $scanfile\n" ;
+  print "** LibZip::Scan saved at $scanfile\n" if $_[0] ;
 
   open (LOG,">$scanfile") ;
 
@@ -50,6 +62,12 @@ sub END {
   close (LOG) ;
 
 }
+
+#######
+# END #
+#######
+
+sub END { save_inc(1) }
 
 #######
 # END #

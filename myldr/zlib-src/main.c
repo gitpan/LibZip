@@ -91,11 +91,37 @@ int opt_allowed(const char *s1, const char *s2) {
   int n = strlen(s1) ;
   if (n == 0) return 0 ;
   
-  if ( strlen(s2) == 2 ) { ++s2 ;}
+  if ( *s2 == '-' ) {
+    if ( strlen(s2) == 2 ) { ++s2 ;}
+    else if ( strlen(s2) > 2 ) {
+      ++s2 ;
+      if (
+        *s2 != 'd' &&
+        *s2 != 'D' &&
+        *s2 != 'F' &&
+        *s2 != 'i' &&
+        *s2 != 'I' &&
+        *s2 != 'l' &&
+        *s2 != 'm' &&
+        *s2 != 'M' &&
+        *s2 != 'V' &&
+        *s2 != 'x'
+      )
+      return 0 ;
+    }
+  }
+
+  //printf("OPT %s [%s]" , s1 , s2) ;
 
   while (n-- != 0) {
-    if (n == 0 || *s1 == '\0' || *s1 == '#') return 0 ;
-    if ( *(unsigned char *)s1 == *(unsigned char *)s2 ) { return 1 ;}
+    if (n == 0 || *s1 == '\0' || *s1 == '#') {
+      //printf("\n") ;
+      return 0 ;
+    }
+    if ( *(unsigned char *)s1 == *(unsigned char *)s2 ) {
+      //printf("OK\n") ;
+      return 1 ;
+    }
     s1++;
   }
 
@@ -247,6 +273,8 @@ main(int argc, char **argv, char **env)
     // run interpreter:
     
     my_perl = perl_alloc();
+    PERL_SET_CONTEXT(my_perl);
+    
     perl_construct(my_perl);
 	PL_perl_destruct_level = 0;
     
@@ -268,11 +296,20 @@ main(int argc, char **argv, char **env)
       */
 
     }
-        
+
     exitstatus = perl_parse(my_perl, xs_init, my_argc, my_argv, (char **)NULL) ;
     
     if ( !exitstatus ) {
+      if (arg_code_pos < 0) {
+        eval_pv("$LibZip::ONLY_INIT = 1;" , 0) ;
+        eval_pv(CODE , 0) ;
+      }
+    
       exitstatus = perl_run(my_perl);    
+      
+      if (arg_code_pos < 0) {
+        eval_pv("LibZip::end();" , 0) ;
+      }
     }
     
     perl_destruct(my_perl);

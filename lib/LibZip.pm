@@ -12,7 +12,7 @@
 
 package LibZip ;
 
-$VERSION = '0.05' ;
+$VERSION = '0.06' ;
 
 no warnings ;
 
@@ -359,6 +359,7 @@ sub begin {
   $CALL_BEGIN = 1 ;
   LibZip::InitLib::begin() ;
   chk_dead_tmp($$) ;
+  chk_dead_tmpdir() ;
   return ;
 }
 
@@ -368,8 +369,7 @@ sub BEGIN { &begin ;}
 # END #
 #######
 
-sub END {
-
+sub end {
   $END = 1 ;
 
   foreach my $DATAPACK_i ( @DATAPACK ) {
@@ -381,7 +381,11 @@ sub END {
 
   &chk_dead_tmp ;
   &chk_dead_tmpdir ;
+  
+  LibZip::InitLib::end() ;
 }
+
+sub END { &end }
 
 #######
 # END #

@@ -89,21 +89,26 @@ sub create_lib {
   my $rm_inc = qr/^(?:$incs)[\\\/]*/s ;
   
   foreach my $modules_i ( @modules ) {
-    $modules_i =~ s/[\\\/]+/::/g ;
+    $modules_i =~ s/[\\\/]+/::/g if $modules_i !~ /\.pl$/i ;
     $modules_i =~ s/\.pm$// ;
-    $modules_i =~ s/[^\w:]+//g ;
+    $modules_i =~ s/[^\w:\.\/\\]+//g ;
     
     next if $modules_skip{$modules_i} ;
     next if chk_skip_re($modules_i , @skip_re) ;
     
-    my $pm = $modules_i . '.pm' ;
-    $pm =~ s/::/\//g ;
+    my $pm = $modules_i ;
+    $pm .= '.pm' if $pm !~ /\.pl$/i ;
+    $pm =~ s/::/\//g if $pm !~ /\.pl$/i ;
+    
     my $dir = $modules_i ;
-    $dir =~ s/::/\//g ;
+    if ( $pm =~ /\.pl$/i ) {
+      ($dir) = ( $dir =~ /(.*?)(?:[\\\/]+)?[^\\\/]+$/gi );
+    }
+    else { $dir =~ s/::/\//g ;}
     
     my $pm_file = find_file($pm) ;
-    my @pm_dirs = find_file($dir) ;
-    my @pm_auto = find_file("auto/$dir") ;
+    my @pm_dirs = $dir ? find_file($dir) : () ;
+    my @pm_auto = $dir ? find_file("auto/$dir") : () ;
     
     my @pm_sub_files = scan_dir(@pm_dirs , @pm_auto) ;
     
@@ -113,9 +118,10 @@ sub create_lib {
       $file_in_zip =~ s/$rm_inc// ;
       $file_in_zip = "lib/$file_in_zip" ;
       $files{$file_in_zip} = $pm_sub_files_i ;
+      ##print "$file_in_zip = $pm_sub_files_i\n" ;
     }    
   }
-  
+
   return zip( $zip_file , %files ) ;
 }
 
@@ -151,10 +157,10 @@ sub cat_modules {
     $log_i =~ s/\s+$// ;
     next if $log_i !~ /\S/ ;
     
-    if ( $log_i =~ /^[\w:]+$/ ) { push(@modules , $log_i) ;}
+    if ( $log_i =~ /^(?:\w+[\\\/]+)*?[\w:]+(?:\.pl)?$/i ) { push(@modules , $log_i) ;}
     else { push(@extra , $log_i) ;}
   }
-  
+    
   if ( $get_extra ) { return( \@modules , \@extra ) ;}
   
   return( @modules ) ;

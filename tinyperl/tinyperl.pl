@@ -2,10 +2,10 @@
 
 if ( $ARGV[0] eq '-bin' ) {
 
-    print qq`______________________________________________________
+    print qq`_____________________________________________________________
 
 TinyPerl 3.0 - Generate Binary
-______________________________________________________
+_____________________________________________________________
 
 `;
 
@@ -17,8 +17,8 @@ ______________________________________________________
   OPTIONS:
   -gui      Create a non console executable.
 
-Copyright (c) 2003-2004 Graciliano M. P.
-______________________________________________________
+Copyright (c) 2003-2005 Graciliano M. P. <gmpassos\@cpan.org>
+_____________________________________________________________
 
 `;
     exit ;
@@ -58,6 +58,39 @@ ______________________________________________________
     exit;
   }
 }
+elsif ( $ARGV[0] =~ /^-+(?:h|help)$/i ) {
+  
+print qq`_______________________________________________________________________________
+
+TinyPerl 3.0 - Help
+_______________________________________________________________________________
+
+  Perl OPTIONS:
+
+  -c              check syntax only (runs BEGIN and CHECK blocks)
+  -e 'command'    one line of program (several -e's allowed, omit programfile)
+  -i[extension]   edit <> files in place (makes backup if extension supplied)
+  -Idirectory     specify \@INC/#include directory (several -I's allowed)  
+  -T              enable tainting checks  
+  -v              print version, subversion (includes VERY IMPORTANT perl info)
+  -V[:variable]   print configuration summary (or a single Config.pm variable)  
+  -w              enable many useful warnings (RECOMMENDED)
+  -W              enable all warnings
+  -X              disable all warnings
+  
+  EXTRA OPTIONS:
+  
+  -bin            generate binaries from your script (type it for help).
+
+Copyright (c) 2003-2005 Graciliano M. P. <gmpassos\@cpan.org>
+_______________________________________________________________________________
+
+`;
+
+exit ;
+  
+}
+
 
 sub cat_file {
   my ($data , $fh) ;  
@@ -135,20 +168,25 @@ sub exe_type {
   }
   else {
     my $script = shift( @ARGV ) ;
-    if (! -e $script || $script eq '') { die "Can't find file: $script\n" ;}
-    my $fh ;
-    open ($fh, $script) ; binmode($fh);
-    my $code = '' ;
-    1 while( read($fh, $code , 1024*4 , length($code) ) ) ;
-    close ($fh) ;
-    $LibZip::TMP::CODE = $code ;
-    $LibZip::TMP::SCRIPT = $script ;
+    if ($script eq '') {
+      die "Usage: tinyperl script.pl\nHelp: tinyperl -h\n" ;
+    }
+    elsif (! -e $script || $script eq '') {
+      die "Can't find file: $script\n" ;
+    }
+    else {
+      $LibZip::TMP::SCRIPT = $script ;
+    }
   }
 }
+
 {package main ;
   if ( $LibZip::TMP::CODE ) {
     eval("\n#line 1 $LibZip::TMP::SCRIPT\n" . $LibZip::TMP::CODE) ;
     die $@ if $@ ;  
+  }
+  elsif ($LibZip::TMP::SCRIPT) {
+    do $LibZip::TMP::SCRIPT ;
   }
 }
 

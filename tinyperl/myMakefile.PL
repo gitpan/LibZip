@@ -5,6 +5,20 @@ use strict;
 require 5.006 ;
 use ExtUtils::MakeMaker ;
 use Config ;
+use FindBin ;
+use File::Path ;
+use File::Copy ;
+
+no warnings ;
+
+BEGIN
+{
+    eval { require File::Spec::Functions ; File::Spec::Functions->import() } ;
+    if ($@)
+    {
+        *catfile = sub { return "$_[0]/$_[1]" }
+    }
+}
 
 ########
 # VARS #
@@ -21,7 +35,12 @@ my $rm_exe = "-\$(RM) *$exe" if $exe ;
 # WRITEMAKEFILE #
 #################
 
-print "Writing Makefile for the embed program (LibZipBin)\n";
+if ( $ARGV[0] =~ /releasedir/i ) {
+  releasedir() ;
+  exit;
+}
+
+print "Writing Makefile for TinyPerl\n";
 
 open OUT, "> Makefile" or die "open 'Makefile': $!";
 
@@ -34,10 +53,11 @@ RM=$rm
 MV=$mv
 PERL=$^X
 
+RM_RF = \$(PERL) -MExtUtils::Command -e rm_rf
 
-all: tinyperl$exe
+all: tinyperl$exe releasedir
 
-clean:
+clean: cleanrelease
 	-\$(RM) *.dll *.so *.exe *.zip libzip.modules
 	-\$(RM) *.opt *.pdb
 	\$(MV) Makefile Makefile.old
@@ -46,14 +66,48 @@ realclean: clean
 	-\$(RM) tinyperl$exe
 	-\$(RM) Makefile Makefile.old
 
+cleanrelease :
+	\$(RM_RF) release
+
+releasedir:
+	\$(PERL) myMakeFile.PL releasedir
+
 tinyperl$exe: \$(OBJECTS)
 	\$(PERL) lib.pl
-	\$(PERL) ../script/libzip.pl -ob tinyperl.pl -allowopts ceiITvwWX
-
+	\$(PERL) ../script/libzip -ob tinyperl.pl -allowopts ceiImMTvVwWX
 
 EOT
 
 
 ################################################################################
+
+
+##############
+# RELEASEDIR #
+##############
+
+sub releasedir {
+  my $dir = catfile($FindBin::RealBin, 'release') ;
+  rmtree($dir);
+  
+  mkdir($dir , 0775) ;
+  
+  my @files = ("tinyperl$exe") ;
+
+  opendir (DIRLOG, $FindBin::RealBin);
+  while (my $filename = readdir DIRLOG) {
+    push(@files , $filename) if $filename =~ /\.(?:dll|so|zip)$/ ;
+  }
+  closedir (DIRLOG);
+  
+  foreach my $files_i ( @files ) {
+    copy(catfile($FindBin::RealBin, $files_i), $dir) ;
+  }
+}
+
+#######
+# END #
+#######
+
 
 

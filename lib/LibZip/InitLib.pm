@@ -135,7 +135,7 @@ sub define_lib {
   my $libtmp ;
   
   foreach my $find_lib_i ( @find_lib ) {
-    if ($find_lib_i =~ /[\\\/]site$/i) {
+    if ($find_lib_i =~ /[\\\/]site$/i && $find_lib_i =~ /perl/) {
       my $tmp_lib = "$find_lib_i/libzip-tmp" ;
       if (! -d $tmp_lib) { mkdir($tmp_lib,0775) ;}
       if (-d $tmp_lib && -r $tmp_lib && -w $tmp_lib) { $libtmp = $tmp_lib ; last ;}
@@ -144,7 +144,7 @@ sub define_lib {
   
   if ($libtmp eq '') {
     foreach my $find_lib_i ( @find_lib ) {
-      if ($find_lib_i =~ /[\\\/]lib$/i) {
+      if ($find_lib_i =~ /[\\\/]lib$/i && $find_lib_i =~ /perl/) {
         my $tmp_lib = "$find_lib_i/libzip-tmp" ;
         if (! -d $tmp_lib) { mkdir($tmp_lib,0775) ;}
         if (-d $tmp_lib && -r $tmp_lib && -w $tmp_lib) { $libtmp = $tmp_lib ; last ;}
@@ -220,9 +220,11 @@ sub find_lib {
 # END #
 #######
 
-sub END {
+sub end {
   foreach my $DIRTMP_i ( @DIRTMP ) { rmdir($DIRTMP_i) ;}
 }
+
+sub END { &end ;}
 
 #######
 # END #

@@ -11,7 +11,7 @@ my $embed = 'myldr/LibZipBin' . $Config{_exe} ;
 WriteMakefile(
     'NAME'          => 'LibZip' ,
     'VERSION_FROM'  => 'lib/LibZip.pm' ,
-    'EXE_FILES'     => [ qw(script/libzip.pl) ],
+    'EXE_FILES'     => [ qw(script/libzip) ],
     'PREREQ_PM'		=> {
     'Pod::Stripper'  => '0.22' ,
     'Compress::Zlib' => '1.33' ,
@@ -19,7 +19,7 @@ WriteMakefile(
     } ,
     ($] >= 5.005 ?
       ( ABSTRACT_FROM => 'lib/LibZip.pod',
-        AUTHOR        => 'Graciliano M. P. <gm@virtuasites.com.br>'
+        AUTHOR        => 'Graciliano M. P. <gmpassos@cpan.org>'
        ) : ()
      ),
 );
