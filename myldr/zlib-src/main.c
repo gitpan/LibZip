@@ -210,7 +210,7 @@ main(int argc, char **argv, char **env)
 {
     int my_argc , i;
     char** my_argv;
-    int exitstatus;
+    int exitstatus ;
     int arg_code_pos = -1 ;
     char  *tmp=NULL ;
     int   can_run=1 ;
@@ -218,9 +218,9 @@ main(int argc, char **argv, char **env)
     char  LBZ_size[] = "##[LBZZ]##";
     char  LBZ_size2[] = "##[LBZS]##";
     char  LBZ_allow_opts[] = "##[LBZOPTS]###################";
-    char  LBZ_runA[] = "package LibZip::MAIN;eval{my%LBZ=(z=>'" ;
+    char  LBZ_runA[] = "package LibZip::MAIN;eval{%LBZ=(z=>'" ;
     char  LBZ_runB[] = "',s=>'" ;
-    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);if(-s$LBZ{x}!=($LBZ{z}+$LBZ{s})){1 while(read(LBZ,$_,1024*4,length$_)&&!(/^(.*?\\s##__LIBZIP-SCRIPT__##\\s)/s&&($_=$1)));$LBZ{z}=length$_ if/\\s##__LIBZIP-SCRIPT__##\\s/;}seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);};eval($_);die$@if$@" ;
+    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);if(-s$LBZ{x}!=($LBZ{z}+$LBZ{s})){$_='';1 while(read(LBZ,$_,1024*4,length$_)&&!(/^(.*?\\s##__LIBZIP-SCRIPT__##\\s)/s&&($_=$1)));$LBZ{z}=length$_ if/\\s##__LIBZIP-SCRIPT__##\\s/;}seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);};eval($_);die$@if$@" ;
 
     tmp = malloc(sizeof(char) * strlen(LBZ_size) + 1) ;
 
@@ -255,7 +255,11 @@ main(int argc, char **argv, char **env)
       
       if (arg_code_pos > 0) my_argv[arg_code_pos] = CODE ;
       
-      /* 
+      if ( opt_allowed(LBZ_allow_opts,"-h") ) {
+        if ( my_argc >= 5 && strcmp(my_argv[4], "--help") == 0 ) my_argv[1] = strdup( "-h" ) ;
+      }
+      
+      /*
       printf("-------------------------------------\n") ;
       for(i = 0; i < my_argc ; ++i ) {
         printf("arg>> %s\n" , my_argv[i] ) ;    
@@ -264,7 +268,7 @@ main(int argc, char **argv, char **env)
       */
 
     }
-    
+        
     exitstatus = perl_parse(my_perl, xs_init, my_argc, my_argv, (char **)NULL) ;
     
     if ( !exitstatus ) {

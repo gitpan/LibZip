@@ -94,6 +94,8 @@ sub define_real_path {
     my $fix_lib = "$FindBin::RealBin/lib" ;
     if ( -d $fix_lib ) { unshift (@INC, $fix_lib) ;}
   }
+
+  if ($^O=~/(msw|win|dos)/i && $^X !~ /\.exe$/ && -e "$^X.exe") { $^X .= '.exe' ;}
   
   if ( LibZip::lib_has_dynaLoader() ) {
     delete $INC{'DynaLoader.pm'} ;

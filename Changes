@@ -1,5 +1,11 @@
 Revision history for Perl extension LibZip.
 
+0.05  2004-06-14
+      - Fixed warning for -w
+      - Fixed option --help when -h is enabled.
+      - Sources of TinyPerl in distributuin finisheds.
+
+
 0.04  2004-06-14
       - Enabled/fixed UPX over the executable on Win32.
       - Fixed original perl option -c for check syntax (when -c is enabled in the exec).

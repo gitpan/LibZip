@@ -107,7 +107,7 @@ sub source {
   
   $libzip = "package main ; BEGIN { $begin }\n$libzip" ;
 
-  $extra = "package main ; BEGIN { $extra_begin }\n". src_Carp() . $extra ;
+  $extra = "package main ; BEGIN { \$SIG{__WARN__}=sub{}; $extra_begin }\n". src_Carp() . $extra ;
   $extra .= "\npackage main ; no strict ; no warnings ;" ;
 
   my $src_zlib = "$extra\n$zlib" ;
@@ -243,6 +243,7 @@ die "LibZip INIT ERROR: $@\n" if $@ ;
 foreach my $Key ( keys %INC ) { delete $INC{$Key} if $INC{$Key} eq '1' && $Key !~ /^(?:LibZip\W[\w\/]*|DynaLoader|XSLoader)(?:\.pm)?$/ ;}
 LibZip->import() ;
 LibZip::InitLib::define_real_path() ;
+$SIG{__WARN__}='';
 }
 ` ;
 

@@ -5,7 +5,7 @@ del /f /Q release\*.zip
 
 call perl lib.pl
 
-call libzip -ob tinyperl.pl -allowopts ceiITvwWX
+call libzip -ob tinyperl.pl -allowopts ceiIhTvwWX
 
 mkdir release
 
