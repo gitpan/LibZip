@@ -15,7 +15,7 @@ This module will create low weight self executables, that have this features:
 
 All this featues will generate a I<Initialize Package> of only 28 Kb,
 and a executable of less than 80Kb (Win32), plus PerlLib. This means that a 
-hellow world script as a self executable will have only 350KB (Win32).
+hello world script as a self executable will have only 350KB (Win32).
 
 The main idea of this module is to create the smaller Perl distribution as possible,
 having all the Perl enverioment compressed, including the distribution of scripts
@@ -37,21 +37,22 @@ The usage of this module is through the I<libzip> script:
 
 *> OPTIONS:
 
-  -allowopts    Allow original Perl options.
+  -allowopts    Allow the Perl options.
   -compile|o    Compile the file.
-  -file|f       Define the 2nd file for the options pack and perlbin.
+  -file|f       Define the 2nd file for the options pack, perlbin and lib.
   -gui          Create GUI (non console) executable (Win32 only).
   -icon         Set the icon of the executable (Win32 only).
   -keepsrc      Keep sources created for compilation.
   -lib|l        Create a lib in this directory.
-  -lzw          Apply LZW compression to the package
+  -lzw          Apply LZW compression to the package.
   -obetter|ob   Compile the file with all the options that can compress better.
   -overwrite    Overwrite already existent files.
   -pack|p       Create a package.
   -perlbin|pb   Create a binary from a package.
-  -striplib     Strip POD from libs
+  -striplib     Strip POD from libs.
   -upx          UPX the PerlLib binary.
   -upxlib       UPX binaries from the lib.zip
+
 
 *> EXAMPLES:
 
@@ -92,7 +93,7 @@ Creating the list of modules to be inside lib.zip:
 Converting the script to executable:
 
   $> libzip -ob hello.pl
-  ## hello.exe (or just hello on Linux) and lib.zip was created.
+  ## hello.exe (or just hello on Linux) and lib.zip were created.
 
 => CREATING THE lib.zip AUTOMATICALLY FROM YOU SCRIPT
 
@@ -103,7 +104,7 @@ path of it 2 files:
   - libzip.modules ## list of modules to be inside lib.zip
   - libzip.skip    ## list of modules to NOT add.
 
-To generate libzip.modules automatically just run you script with:
+To generate libzip.modules automatically just run your script with:
 
   $> perl -MLibZip::Scan foo.pl
 
@@ -135,8 +136,6 @@ smaller Perl distribution as possible.
 
 UPX is a tool that can be used to compress executables and run them compressed.
 To enable it with I<LibZip> install the upx binary (will look for upx) in the I<PATH>.
-
-Note that the executable, with your script inside, can't have UPX applied to it, since the size of the file need to be fix.
 
 => Source Obfuscation
 

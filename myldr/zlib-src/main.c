@@ -87,6 +87,21 @@ static PerlInterpreter *my_perl;
 static void xs_init( pTHX );
 EXTERN_C void boot_DynaLoader( pTHX_ CV* cv );
 
+int opt_allowed(const char *s1, const char *s2) {
+  int n = strlen(s1) ;
+  if (n == 0) return 0 ;
+  
+  if ( strlen(s2) == 2 ) { ++s2 ;}
+
+  while (n-- != 0) {
+    if (n == 0 || *s1 == '\0' || *s1 == '#') return 0 ;
+    if ( *(unsigned char *)s1 == *(unsigned char *)s2 ) { return 1 ;}
+    s1++;
+  }
+
+  return 0 ;
+}
+
 char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , char* allow_opts )
 {
     int i, count = ( argc ? argc : 1 ) + 3 ;
@@ -94,20 +109,23 @@ char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , c
     
     char** my_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
     char** perl_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
+    char** noallow_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
     char** script_argv = (char**) malloc( ( count + 1 ) * sizeof(char**) );
     
     int perl_argv_i = 0 ;
+    int noallow_argv_i = 0 ;
     int script_argv_i = 0 ;
     int my_arv_i = 0 ;
     
+    int script_argv_begin = 0 ;
+    
     int end_perl_args = -1 ;
     int last_e = 0 ;
+
     int found_opt_e = 0 ;
-    
-    //printf(">> %s >> %i >> %i >> %i\n" , allow_opts , opt_allowed(allow_opts,"-v") , opt_allowed(allow_opts,"V") , opt_allowed(allow_opts,"z") ) ;
+    int found_opt_c = 0 ;
     
     for( i = 1; i < count - 3 ; ++i ) {
-      //char *opt = strdup(argv[i]) ; ++opt ;
       
       if ( end_perl_args == -1 && (strncmp(argv[i], "-", 1) == 0 || last_e) ) {
         if ( last_e || opt_allowed(allow_opts,argv[i]) ) {
@@ -115,9 +133,11 @@ char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , c
 
           if ( strcmp(argv[i], "-e") == 0 ) { last_e = found_opt_e = 1 ;}
           else { last_e = 0 ;}
+          
+          if ( strcmp(argv[i], "-c") == 0 ) { found_opt_c = 1 ;}
         }
         else {
-          script_argv[ script_argv_i++ ] = strdup(argv[i]) ;
+          noallow_argv[ noallow_argv_i++ ] = strdup(argv[i]) ;
           last_e = 0 ;
         }
       }
@@ -136,15 +156,23 @@ char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , c
       my_argv[my_arv_i++] =  strdup( perl_argv[i] ) ;
     }
     
-    if ( !found_opt_e ) {
+    if ( found_opt_c && script_argv_i > 0 ) {
+      my_argv[my_arv_i++] = strdup( script_argv[0] );
+      ++script_argv_begin ;
+    }
+    else if ( !found_opt_e ) {
       my_argv[my_arv_i++] = strdup( "-e" );
       *arg_code_pos = my_arv_i ;
       my_argv[my_arv_i++] = strdup( "0" );
     }
     
     my_argv[my_arv_i++] = strdup( "--" );
-        
-    for(i = 0; i < script_argv_i ; ++i ) {
+    
+    for(i = 0; i < noallow_argv_i ; ++i ) {
+      my_argv[my_arv_i++] =  strdup( noallow_argv[i] ) ;
+    }
+    
+    for(i = script_argv_begin; i < script_argv_i ; ++i ) {
       my_argv[my_arv_i++] =  strdup( script_argv[i] ) ;
     }
 
@@ -155,6 +183,10 @@ char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , c
     
     for( i = 0; i < perl_argv_i ; ++i ) {
       printf("pl>> %s\n" , perl_argv[i] ) ;    
+    }
+    
+    for( i = 0; i < noallow_argv_i ; ++i ) {
+      printf("no>> %s\n" , noallow_argv[i] ) ;    
     }
     
     for( i = 0; i < script_argv_i ; ++i ) {
@@ -173,22 +205,6 @@ char** prepare_args( int argc, char** argv, int* my_argc , int* arg_code_pos , c
     return my_argv;
 }
 
-int opt_allowed(const char *s1, const char *s2) {
-  int n = strlen(s1) ;
-  if (n == 0) return 0 ;
-  
-  if ( strlen(s2) == 2 ) { ++s2 ;}
-
-  while (n-- != 0) {
-    if (n == 0 || *s1 == '\0' || *s1 == '#') return 0 ;
-    if ( *(unsigned char *)s1 == *(unsigned char *)s2 ) { return 1 ;}
-    s1++;
-  }
-
-  return 0 ;
-}
-
-
 int
 main(int argc, char **argv, char **env)
 {
@@ -198,13 +214,13 @@ main(int argc, char **argv, char **env)
     int arg_code_pos = -1 ;
     char  *tmp=NULL ;
     int   can_run=1 ;
-    char  CODE[300] ;
+    char  CODE[500] ;
     char  LBZ_size[] = "##[LBZZ]##";
     char  LBZ_size2[] = "##[LBZS]##";
     char  LBZ_allow_opts[] = "##[LBZOPTS]###################";
-    char  LBZ_runA[] = "package LibZip::MAIN;my%LBZ_BIN;eval{my%LBZ=(z=>'" ;
+    char  LBZ_runA[] = "package LibZip::MAIN;eval{my%LBZ=(z=>'" ;
     char  LBZ_runB[] = "',s=>'" ;
-    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);%LBZ_BIN=%LBZ};eval($_);die$@if$@" ;
+    char  LBZ_runC[] = "',x=>$^X);if((!-s$LBZ{x})||-d$LBZ{x}){if($^O=~/(msw|win|dos)/i){$LBZ{x}.='.exe'}}open(LBZ,$LBZ{x});binmode(LBZ);if(-s$LBZ{x}!=($LBZ{z}+$LBZ{s})){1 while(read(LBZ,$_,1024*4,length$_)&&!(/^(.*?\\s##__LIBZIP-SCRIPT__##\\s)/s&&($_=$1)));$LBZ{z}=length$_ if/\\s##__LIBZIP-SCRIPT__##\\s/;}seek(LBZ,$LBZ{z},0);read(LBZ,$_,$LBZ{s});close(LBZ);};eval($_);die$@if$@" ;
 
     tmp = malloc(sizeof(char) * strlen(LBZ_size) + 1) ;
 
@@ -236,6 +252,7 @@ main(int argc, char **argv, char **env)
     
     if ( can_run ) {
       sprintf(CODE,"%s%s%s%s%s\0",LBZ_runA,LBZ_size,LBZ_runB,LBZ_size2,LBZ_runC) ;
+      
       if (arg_code_pos > 0) my_argv[arg_code_pos] = CODE ;
       
       /* 
@@ -249,7 +266,10 @@ main(int argc, char **argv, char **env)
     }
     
     exitstatus = perl_parse(my_perl, xs_init, my_argc, my_argv, (char **)NULL) ;
-    exitstatus = perl_run(my_perl);
+    
+    if ( !exitstatus ) {
+      exitstatus = perl_run(my_perl);    
+    }
     
     perl_destruct(my_perl);
     perl_free(my_perl);

@@ -35,6 +35,8 @@ use LibZip::Build::UPX ;
   my $size_mark2      = '##[LBZS]##' ;
   my $allow_opts_mark = '##[LBZOPTS]###################' ;
   
+  my $script_begin_mark = "\n##__LIBZIP-SCRIPT__##\n" ;
+  
   my $LibZipBin_file = 'LibZipBin' . $Config{_exe} ;
   
 #################
@@ -96,6 +98,8 @@ sub perl2bin {
     $binlog = cat($exe_name) ;
   }
   
+  $binlog .= $script_begin_mark ;
+  
   my $scriptlog = cat($script_file) ;  
   
   my $bin_lng = length($binlog) ;
@@ -122,6 +126,8 @@ sub perl2bin {
     print "Converting to GUI...\n" ;
     exe_type($exe_name,'windows') ;
   }
+
+  LibZip::Build::UPX::upx($exe_name) if $opts{upx} ;
 
   check_perllib_copy($script_dir , $opts{upx}) ;
   

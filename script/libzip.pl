@@ -24,17 +24,17 @@ OPTIONS:
 
   -allowopts    Allow the Perl options.
   -compile|o    Compile the file.
-  -file|f       Define the 2nd file for the options pack and perlbin.
+  -file|f       Define the 2nd file for the options pack, perlbin and lib.
   -gui          Create GUI (non console) executable (Win32 only).
   -icon         Set the icon of the executable (Win32 only).
   -keepsrc      Keep sources created for compilation.
   -lib|l        Create a lib in this directory.
-  -lzw          Apply LZW compression to the package
+  -lzw          Apply LZW compression to the package.
   -obetter|ob   Compile the file with all the options that can compress better.
   -overwrite    Overwrite already existent files.
   -pack|p       Create a package.
   -perlbin|pb   Create a binary from a package.
-  -striplib     Strip POD from libs
+  -striplib     Strip POD from libs.
   -upx          UPX the PerlLib binary.
   -upxlib       UPX binaries from the lib.zip
 

@@ -48,7 +48,7 @@ realclean: clean
 
 tinyperl$exe: \$(OBJECTS)
 	\$(PERL) lib.pl
-	\$(PERL) ../script/libzip.pl -ob tinyperl.pl -allowopts ceiITvVwWX
+	\$(PERL) ../script/libzip.pl -ob tinyperl.pl -allowopts ceiITvwWX
 
 
 EOT

@@ -12,7 +12,7 @@
 
 package LibZip ;
 
-$VERSION = '0.03' ;
+$VERSION = '0.04' ;
 
 no warnings ;
 
@@ -53,7 +53,7 @@ sub import {
 
   if (-s $args[0]) { $LIBZIP = $args[0] ;}
   
-  &LoadLibZip($LIBZIP) ;
+  &LoadLibZip($LIBZIP) if $LIBZIP ;
 }
 
 #######
@@ -92,7 +92,7 @@ sub LoadLibZip {
   
   print "LOAD>> $libzip\n" if $DEBUG ;
 
-  if (!-s $libzip) { warn("Can't find or load LibZip: $libzip") ;}
+  if (!-s $libzip) { warn("Can't find or load LibZip: $libzip") ; return ;}
   
   begin() ;
 
